@@ -1,0 +1,76 @@
+﻿<Window x:Class="ScrapLangEditor.MainWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
+ Title="ScrapLang Editor" Height="600" Width="800"
+ Background="#121212" Foreground="#D0D0D0"
+ WindowStyle="ToolWindow" AllowsTransparency="False">
+<Window.Resources>
+ <!-- Modern button style -->
+ <Style TargetType="Button">
+     <Setter Property="Background" Value="#1F1F1F"/>
+     <Setter Property="Foreground" Value="#D0D0D0"/>
+     <Setter Property="FontSize" Value="14"/>
+     <Setter Property="Padding" Value="10,5"/>
+     <Setter Property="Margin" Value="5"/>
+     <Setter Property="BorderBrush" Value="#292929"/>
+     <Setter Property="BorderThickness" Value="1"/>
+     <Setter Property="Template">
+         <Setter.Value>
+             <ControlTemplate TargetType="Button">
+                 <Border Background="{TemplateBinding Background}" 
+                         BorderBrush="{TemplateBinding BorderBrush}" 
+                         BorderThickness="{TemplateBinding BorderThickness}" 
+                         CornerRadius="5">
+                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                 </Border>
+             </ControlTemplate>
+         </Setter.Value>
+     </Setter>
+ </Style>
+
+ <!-- Subtle typing animation -->
+ <Storyboard x:Key="TypingAnimation">
+     <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.7" To="1" Duration="0:0:0.2" AutoReverse="False"/>
+     <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" From="0.95" To="1" Duration="0:0:0.2" AutoReverse="False"/>
+     <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" From="0.95" To="1" Duration="0:0:0.2" AutoReverse="False"/>
+ </Storyboard>
+</Window.Resources>
+
+<DockPanel>
+ <!-- Top Menu -->
+ <Menu DockPanel.Dock="Top" Background="#1A1A1A" Foreground="#D0D0D0">
+     <MenuItem Header="File">
+         <MenuItem Header="Open" Click="OpenFile_Click"/>
+         <MenuItem Header="Save" Click="SaveFile_Click"/>
+     </MenuItem>
+     <MenuItem Header="Edit">
+         <MenuItem Header="Undo" Click="Undo_Click"/>
+         <MenuItem Header="Redo" Click="Redo_Click"/>
+     </MenuItem>
+ </Menu>
+
+ <!-- Main Content -->
+ <Grid>
+     <Grid.RowDefinitions>
+         <RowDefinition Height="*"/>
+         <RowDefinition Height="Auto"/>
+     </Grid.RowDefinitions>
+
+     <!-- Text Editor -->
+     <avalonedit:TextEditor x:Name="textEditor" ShowLineNumbers="True" FontFamily="Consolas" FontSize="14"
+                            Background="#1E1E1E" Foreground="#A9A9A9" BorderBrush="#292929" BorderThickness="0"
+                            Padding="10" TextChanged="TextEditor_TextChanged"
+                            HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+         <avalonedit:TextEditor.RenderTransform>
+             <ScaleTransform ScaleX="1" ScaleY="1"/>
+         </avalonedit:TextEditor.RenderTransform>
+     </avalonedit:TextEditor>
+
+     <!-- Status Bar -->
+     <StackPanel Grid.Row="1" Orientation="Horizontal" Background="#1A1A1A" Height="30">
+         <TextBlock Text="Ready" Margin="10,0" VerticalAlignment="Center" Foreground="#A9A9A9"/>
+     </StackPanel>
+ </Grid>
+</DockPanel>
+</Window>

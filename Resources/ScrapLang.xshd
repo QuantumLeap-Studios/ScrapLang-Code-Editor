@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SyntaxDefinition name="ScrapLang" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Keyword" foreground="Blue" fontWeight="bold" />
+  <Color name="Type" foreground="Teal" />
+  <Color name="Function" foreground="Purple" />
+  <Color name="String" foreground="Maroon" />
+  <Color name="Comment" foreground="Green" />
+
+  <RuleSet>
+    <!-- Comments -->
+
+
+    <!-- Strings -->
+    <Span color="String" begin="&quot;" end="&quot;" />
+
+    <!-- Keywords -->
+    <Keywords color="Keyword">
+      <Word>publicated</Word>
+      <Word>funcvoid</Word>
+      <Word>invoid</Word>
+      <Word>breakpoint</Word>
+      <Word>print</Word>
+      <Word>increment</Word>
+      <Word>SetPlayerSpeed</Word>
+      <Word>SpawnObject</Word>
+      <Word>PlaySound</Word>
+      <Word>ChangeScene</Word>
+      <Word>JoinLobby</Word>
+      <Word>End</Word>
+    </Keywords>
+
+    <!-- Types -->
+    <Keywords color="Type">
+      <Word>intistab</Word>
+      <Word>floatpoint</Word>
+      <Word>bolen</Word>
+      <Word>stringly</Word>
+      <Word>charact</Word>
+      <Word>bytelet</Word>
+      <Word>longlong</Word>
+      <Word>array</Word>
+      <Word>dictionary</Word>
+      <Word>vector2</Word>
+      <Word>vector3</Word>
+      <Word>quaternion</Word>
+      <Word>gameobject</Word>
+      <Word>transform</Word>
+      <Word>monobehvaiour</Word>
+    </Keywords>
+
+    <!-- Function Names -->
+    <Rule color="Function">
+      \b[A-Za-z_][A-Za-z0-9_]*\s*\)
+    </Rule>
+
+    <!-- Any Keyword or Function ending with ) -->
+    <Rule color="Keyword">
+      \b[A-Za-z_][A-Za-z0-9_]*\s*\)
+    </Rule>
+
+    <!-- Numbers -->
+    <Rule color="Type">
+      \b\d+(\.\d+)?\b
+    </Rule>
+  </RuleSet>
+</SyntaxDefinition>

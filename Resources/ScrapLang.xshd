@@ -9,8 +9,13 @@
   <RuleSet>
     <!-- Comments -->
 
+	  <Keywords color="Comment">
+		  <Word>/=</Word>
+		  <Word>=\</Word>
+	  </Keywords>
+	  <Span color="Comment" begin="/=" end="=\\" />
 
-    <!-- Strings -->
+	  <!-- Strings -->
     <Span color="String" begin="&quot;" end="&quot;" />
 
     <!-- Keywords -->
@@ -60,13 +65,13 @@
 
     <!-- Function Names -->
     <Rule color="Function">
-      \b[A-Za-z_][A-Za-z0-9_]*\s*\)
-    </Rule>
+		\b[A-Za-z_][A-Za-z0-9_][(-)]*\s*\)
+	</Rule>
 
-    <!-- Any Keyword or Function ending with ) -->
-    <Rule color="Keyword">
-      \b[A-Za-z_][A-Za-z0-9_]*\s*\)
-    </Rule>
+	<!-- Any Keyword or Function ending with ) -->
+	<Rule color="Keyword">
+		\b[A-Za-z_][A-Za-z0-9_][(-)]*\s*\)
+	</Rule>
 
     <!-- Numbers -->
     <Rule color="Type">

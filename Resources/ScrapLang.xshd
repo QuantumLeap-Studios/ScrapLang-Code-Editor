@@ -1,81 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<SyntaxDefinition name="ScrapLang" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
-  <Color name="Keyword" foreground="Blue" fontWeight="bold" />
-  <Color name="Type" foreground="Teal" />
-  <Color name="Function" foreground="Purple" />
-  <Color name="String" foreground="Maroon" />
-  <Color name="Comment" foreground="Green" />
+<SyntaxDefinition name="ScrapLang" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">  
+ <Color name="Keyword" foreground="Blue" fontWeight="bold" />  
+ <Color name="Type" foreground="Teal" />
+ <Color name="String" foreground="Maroon" />  
+ <Color name="Comment" foreground="Green" />  
+	<Color name="FunctionComment" fontStyle="italic" />
 
-  <RuleSet>
-    <!-- Comments -->
+ <RuleSet>  
+   <!-- Comments -->  
+   <Keywords color="Comment">  
+     <Word>/=</Word>  
+     <Word>=\</Word>  
+   </Keywords>  
+   <Span color="Comment" begin="/=" end="=\\" />  
 
-	  <Keywords color="Comment">
-		  <Word>/=</Word>
-		  <Word>=\</Word>
-	  </Keywords>
-	  <Span color="Comment" begin="/=" end="=\\" />
+   <!-- Strings -->  
+   <Span color="String" begin="&quot;" end="&quot;" />  
 
-	  <!-- Strings -->
-    <Span color="String" begin="&quot;" end="&quot;" />
+   <!-- Keywords -->  
+   <Keywords color="Keyword">  
+     <Word>publicated</Word>  
+     <Word>funcvoid</Word>  
+     <Word>invoid</Word>  
+     <Word>breakpoint</Word>  
+     <Word>print</Word>  
+     <Word>increment</Word>  
+     <Word>SetPlayerSpeed</Word>  
+     <Word>SpawnObject</Word>  
+     <Word>PlaySound</Word>  
+     <Word>ChangeScene</Word>  
+     <Word>JoinLobby</Word>  
+     <Word>End</Word>  
+     <Word>Randomize</Word>  
+     <Word>EndAndRefreshAll</Word>  
+     <Word>GetFileData</Word>  
+     <Word>Destroy</Word>  
+     <Word>Move</Word>  
+     <Word>GetPosition</Word>  
+     <Word>GetRotation</Word>  
+     <Word>GetScale</Word>  
+     <Word>Rotate</Word>  
+     <Word>Scale</Word>
+   </Keywords>
 
-    <!-- Keywords -->
-    <Keywords color="Keyword">
-      <Word>publicated</Word>
-      <Word>funcvoid</Word>
-      <Word>invoid</Word>
-      <Word>breakpoint</Word>
-      <Word>print</Word>
-      <Word>increment</Word>
-      <Word>SetPlayerSpeed</Word>
-      <Word>SpawnObject</Word>
-      <Word>PlaySound</Word>
-      <Word>ChangeScene</Word>
-      <Word>JoinLobby</Word>
-      <Word>End</Word>
-	  <Word>Randomize</Word>
-	  <Word>EndAndRefreshAll</Word>
-		<Word>GetFileData</Word>
-		<Word>Destroy</Word>
-		<Word>Move</Word>
-		<Word>GetPosition</Word>
-		<Word>GetRotation</Word>
-		<Word>GetScale</Word>
-		<Word>Rotate</Word>
-		<Word>Scale</Word>
-    </Keywords>
+	 <Keywords color="FunctionComment">
+		 <Word>==</Word>
+	 </Keywords>
 
-    <!-- Types -->
-    <Keywords color="Type">
-      <Word>intistab</Word>
-      <Word>floatpoint</Word>
-      <Word>bolen</Word>
-      <Word>stringly</Word>
-      <Word>charact</Word>
-      <Word>bytelet</Word>
-      <Word>longlong</Word>
-      <Word>array</Word>
-      <Word>dictionary</Word>
-      <Word>vector2</Word>
-      <Word>vector3</Word>
-      <Word>quaternion</Word>
-      <Word>gameobject</Word>
-      <Word>transform</Word>
-      <Word>monobehvaiour</Word>
-    </Keywords>
+   <!-- Types -->  
+   <Keywords color="Type">  
+     <Word>intistab</Word>  
+     <Word>floatpoint</Word>  
+     <Word>bolen</Word>  
+     <Word>stringly</Word>  
+     <Word>charact</Word>  
+     <Word>bytelet</Word>  
+     <Word>longlong</Word>  
+     <Word>array</Word>  
+     <Word>dictionary</Word>  
+     <Word>vector2</Word>  
+     <Word>vector3</Word>  
+     <Word>quaternion</Word>  
+     <Word>gameobject</Word>  
+     <Word>transform</Word>  
+     <Word>monobehvaiour</Word>  
+   </Keywords>  
 
-    <!-- Function Names -->
-    <Rule color="Function">
-		\b[A-Za-z_][A-Za-z0-9_][(-)]*\s*\)
-	</Rule>
 
-	<!-- Any Keyword or Function ending with ) -->
-	<Rule color="Keyword">
-		\b[A-Za-z_][A-Za-z0-9_][(-)]*\s*\)
-	</Rule>
-
-    <!-- Numbers -->
-    <Rule color="Type">
-      \b\d+(\.\d+)?\b
-    </Rule>
-  </RuleSet>
+   <!-- Numbers -->  
+   <Rule color="Type">  
+     \b\d+(\.\d+)?\b  
+   </Rule>  
+ </RuleSet>  
 </SyntaxDefinition>

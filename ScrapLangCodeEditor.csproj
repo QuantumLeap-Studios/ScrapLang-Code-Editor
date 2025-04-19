@@ -132,4 +132,8 @@
     </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>powershell -Command "if (Test-Path 'C:\Users\harlo\source\repos\ScrapLang Code Editor\Scrap Lang Code Editor.zip') { Remove-Item 'C:\Users\harlo\source\repos\ScrapLang Code Editor\Scrap Lang Code Editor.zip' -Force }; Compress-Archive -Path 'C:\Users\harlo\source\repos\ScrapLang Code Editor\export' -DestinationPath 'C:\Users\harlo\source\repos\ScrapLang Code Editor\Scrap Lang Code Editor.zip' -Force"
+</PostBuildEvent>
+  </PropertyGroup>
 </Project>

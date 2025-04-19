@@ -27,6 +27,16 @@
       <Word>ChangeScene</Word>
       <Word>JoinLobby</Word>
       <Word>End</Word>
+	  <Word>Randomize</Word>
+	  <Word>EndAndRefreshAll</Word>
+		<Word>GetFileData</Word>
+		<Word>Destroy</Word>
+		<Word>Move</Word>
+		<Word>GetPosition</Word>
+		<Word>GetRotation</Word>
+		<Word>GetScale</Word>
+		<Word>Rotate</Word>
+		<Word>Scale</Word>
     </Keywords>
 
     <!-- Types -->

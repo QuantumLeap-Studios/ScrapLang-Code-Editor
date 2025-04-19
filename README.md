@@ -1,4 +1,4 @@
-# ScrapLang Code Editor
+![Banner](https://raw.githubusercontent.com/QuantumLeap-Studios/ScrapLang-Code-Editor/master/Copy%20of%20gdfgdf.png)
 
 ScrapLang Code Editor is a lightweight and customizable code editor designed for editing `.scrap` files with syntax highlighting and basic editing features.
 
@@ -6,11 +6,12 @@ ScrapLang Code Editor is a lightweight and customizable code editor designed for
 - Syntax highlighting for ScrapLang files (`.scrap`).
 - Open and save files with ease.
 - Undo and redo functionality.
-
-## Prerequisites
-- **.NET Framework 4.8**: Ensure you have .NET Framework 4.8 installed on your system.
-
 ## How to Use
+
+> [!NOTE]
+> Ensure you have .NET Framework 4.8 installed on your system.
+
+
 1. Launch the application by running the `ScrapLang Code Editor.exe` file.
 2. Use the **File** menu to:
    - Open `.scrap` files.

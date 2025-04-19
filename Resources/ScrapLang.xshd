@@ -41,6 +41,9 @@
      <Word>GetScale</Word>  
      <Word>Rotate</Word>  
      <Word>Scale</Word>
+	   <Word>LoadAssetBundleAndUse</Word>
+	   <Word>SetBrightness</Word>
+	   <Word>GetModDirectory</Word>
    </Keywords>
 
 	 <Keywords color="FunctionComment">

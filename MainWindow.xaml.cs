@@ -12,17 +12,109 @@ using ICSharpCode.AvalonEdit.Editing;
 using ICSharpCode.AvalonEdit.Document;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Input; // Add this namespace import
+using System.Windows.Input;
+using System.IO.Compression;
+using System.Collections.Generic; // Add this namespace import
+using System.Collections.Specialized;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Threading;
+using System.Windows.Forms;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using Application = System.Windows.Application;
+using DiscordRPC;
+using DiscordRPC.Logging;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace ScrapLangEditor
 {
     public partial class MainWindow : Window
     {
+        public static MainWindow instance;
+        private
+        const string RecentFilesPath = "recentFiles.txt";
+        private DiscordRpcClient discordClient;
+
+        private void LoadRecentFiles()
+        {
+            if (File.Exists(RecentFilesPath))
+            {
+                recentFiles = File.ReadAllLines(RecentFilesPath).ToList();
+                foreach (var file in recentFiles)
+                {
+                    RecentFilesList.Items.Add(file);
+                }
+            }
+        }
+
+        private void SaveRecentFiles()
+        {
+            File.WriteAllLines(RecentFilesPath, recentFiles);
+        }
+
+        private List<string> recentFiles = new List<string>();
+        private List<string> fileExplorerItems = new List<string>();
+        // Import the GetAsyncKeyState function from user32.dll
+        // Delegate for the hook procedure
+        private delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+        // Hook handle
+        private IntPtr _hookID = IntPtr.Zero;
+
+        // Hook procedure instance to prevent garbage collection
+        private LowLevelMouseProc _proc = HookCallback;
+
+        // Constants for mouse messages
+        private
+        const int WH_MOUSE_LL = 14;
+        private
+        const int WM_MOUSEWHEEL = 0x020A;
+
+        // Import necessary Windows API functions
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        // Structure for mouse hook information
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MSLLHOOKSTRUCT
+        {
+            public POINT pt;
+            public uint mouseData;
+            public uint flags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+
+        // Structure for point coordinates
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT
+        {
+            public int x;
+            public int y;
+        }
+
         public MainWindow()
         {
+            instance = this;
             InitializeComponent();
             textEditor.TextChanged += TextEditor_TextChanged;
-            textEditor.MouseWheel += TextEditor_MouseWheel;
+            textEditor.MouseWheel += textEditor_MouseWheel;
+
+            LoadRecentFiles();
+
+            Loaded += MainWindow_Loaded;
+            Closed += MainWindow_Closed;
             var assembly = Assembly.GetExecutingAssembly();
             foreach (string resource in assembly.GetManifestResourceNames())
             {
@@ -38,29 +130,219 @@ namespace ScrapLangEditor
                 using (XmlReader reader = XmlReader.Create(stream))
                 {
                     var highlightingDefinition = HighlightingLoader.Load(reader, HighlightingManager.Instance);
-                    HighlightingManager.Instance.RegisterHighlighting("ScrapLang", new[] { ".scrap" }, highlightingDefinition);
+                    HighlightingManager.Instance.RegisterHighlighting("ScrapLang", new[] {
+            ".scrap"
+          }, highlightingDefinition);
                 }
             }
+
+            discordClient = new DiscordRpcClient("1363181847709745262");
+
+            discordClient.Logger = new ConsoleLogger() { Level = LogLevel.Warning };
+
+            discordClient.OnReady += (sender, e) =>
+            {
+                Console.WriteLine("Connected to Discord as {0}", e.User.Username);
+            };
+
+            discordClient.OnPresenceUpdate += (sender, e) =>
+            {
+                Console.WriteLine("Presence updated.");
+            };
+
+            discordClient.Initialize();
+
+            var timer = new System.Timers.Timer(150);
+            timer.Elapsed += (sender, args) => { discordClient.Invoke(); };
+            timer.Start();
+
+            discordClient.SetPresence(new RichPresence()
+            {
+                Details = "Editing a ScrapLang file",
+                State = $"Working on an unnamed project",
+                Assets = new Assets()
+                {
+                    LargeImageKey = "scraplang_logo",
+                    LargeImageText = "ScrapLang Editor"
+                }
+            });
+
+            textEditor.Text = @"publicated intistab counter = 0stb
+invoid incrementCounter() == increment
+
+funcvoid increment() ==
+{
+    incrementCounter()
+}
+
+funcvoid Awake() ==  
+{
+    increment()
+    print(counter)
+}";
+
             textEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("ScrapLang");
+        }
+
+        private void AddToRecentFiles(string filePath)
+        {
+            if (!recentFiles.Contains(filePath))
+            {
+                recentFiles.Add(filePath);
+                RecentFilesList.Items.Add(filePath);
+                SaveRecentFiles();
+            }
+        }
+        private void ToggleSidebar_Click(object sender, RoutedEventArgs e)
+        {
+            Sidebar.Visibility = Sidebar.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        }
+        private void RecentFilesList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (RecentFilesList.SelectedItem != null)
+            {
+                string filePath = RecentFilesList.SelectedItem.ToString();
+                if (File.Exists(filePath))
+                {
+                    loaddefile(filePath);
+                }
+            }
+        }
+
+        private void AddFile_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string filePath = openFileDialog.FileName;
+                if (!fileExplorerItems.Contains(filePath))
+                {
+                    fileExplorerItems.Add(filePath);
+                    FileExplorerList.Items.Add(filePath);
+                }
+            }
+        }
+
+        private void RemoveFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (FileExplorerList.SelectedItem != null)
+            {
+                if(FileExplorerList.SelectedItem.ToString().ToLower().Contains("\\main.scrap"))
+                {
+                    System.Windows.MessageBox.Show("Cannot remove main.scrap file.");
+                    return;
+                }
+                string selectedFile = FileExplorerList.SelectedItem.ToString();
+                fileExplorerItems.Remove(selectedFile);
+                FileExplorerList.Items.Remove(selectedFile);
+            }
         }
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "ScrapLang files (*.scrap)|*.scrap|All files (*.*)|*.*";
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "ScrapLang files (*.scrap)|*.scrap|Zip archives (*.zip)|*.zip|All files (*.*)|*.*"
+            };
+
             if (openFileDialog.ShowDialog() == true)
             {
-                textEditor.Load(openFileDialog.FileName);
+                loaddefile(openFileDialog.FileName);
             }
         }
 
+        public void loaddefile(string FileName)
+        {
+            string extension = Path.GetExtension(FileName).ToLowerInvariant();
+
+            if (extension == ".scrap")
+            {
+                textEditor.Load(FileName);
+                AddToRecentFiles(FileName);
+                fileExplorerItems.Clear();
+                FileExplorerList.Items.Clear();
+                FileExplorerList.Items.Add(FileName);
+            }
+            else if (extension == ".zip")
+            {
+                using (ZipArchive archive = ZipFile.OpenRead(FileName))
+                {
+                    var entry = archive.GetEntry("main.scrap");
+                    if (entry != null)
+                    {
+                        fileExplorerItems.Clear();
+                        FileExplorerList.Items.Clear();
+                        FileExplorerList.Items.Add(FileName + "\\main.scrap");
+
+                        discordClient.SetPresence(new RichPresence()
+                        {
+                            Details = "Editing a ScrapLang file",
+                            State = $"Working on {Path.GetFileName(FileName)}",
+                            Assets = new Assets()
+                            {
+                                LargeImageKey = "scraplang_logo",
+                                LargeImageText = "ScrapLang Editor"
+                            }
+                        });
+
+                        using (var reader = new StreamReader(entry.Open()))
+                        {
+                            textEditor.Text = reader.ReadToEnd();
+                            AddToRecentFiles(FileName);
+                        }
+
+                        foreach (var file in archive.Entries)
+                        {
+                            if (file.Name != "main.scrap")
+                            {
+                                string assetPath = Path.Combine(Path.GetDirectoryName(FileName), file.Name);
+                                file.ExtractToFile(assetPath, true);
+                                fileExplorerItems.Add(assetPath);
+                                FileExplorerList.Items.Add(assetPath);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         private void SaveFile_Click(object sender, RoutedEventArgs e)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "ScrapLang files (*.scrap)|*.scrap|All files (*.*)|*.*";
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Filter = "ScrapLang files (*.scrap)|*.scrap|Zip archives (*.zip)|*.zip|All files (*.*)|*.*"
+            };
+
             if (saveFileDialog.ShowDialog() == true)
             {
-                textEditor.Save(saveFileDialog.FileName);
+                string extension = Path.GetExtension(saveFileDialog.FileName).ToLowerInvariant();
+
+                if (extension == ".scrap")
+                {
+                    textEditor.Save(saveFileDialog.FileName);
+                }
+                else if (extension == ".zip")
+                {
+
+                    using (ZipArchive archive = ZipFile.Open(saveFileDialog.FileName, ZipArchiveMode.Create))
+                    {
+                        // Add main.scrap content
+                        var mainEntry = archive.CreateEntry("main.scrap");
+                        using (var writer = new StreamWriter(mainEntry.Open()))
+                        {
+                            writer.Write(textEditor.Text);
+                        }
+
+                        foreach (var file in fileExplorerItems)
+                        {
+                            string assetName = Path.GetFileName(file);
+                            archive.CreateEntryFromFile(file, assetName);
+                        }
+                    }
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Unsupported file type.");
+                }
             }
         }
 
@@ -98,25 +380,35 @@ namespace ScrapLangEditor
                 e.Handled = true;
             }
         }
-        private void TextEditor_MouseWheel(object sender, MouseWheelEventArgs e)
+        private void textEditor_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            const double zoomFactor = 3;
+            const double zoomFactor = 0.1;
+            Console.WriteLine("Mouse Wheel Scrolled");
+            // Check if the Ctrl key is pressed
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
+                // Retrieve or create the ScaleTransform
                 var scaleTransform = textEditor.RenderTransform as ScaleTransform;
-                if (scaleTransform != null)
+                if (scaleTransform == null)
                 {
-                    if (e.Delta > 0)
-                    {
-                        scaleTransform.ScaleX += zoomFactor;
-                        scaleTransform.ScaleY += zoomFactor;
-                    }
-                    else if (e.Delta < 0)
-                    {
-                        scaleTransform.ScaleX = Math.Max(0.1, scaleTransform.ScaleX - zoomFactor);
-                        scaleTransform.ScaleY = Math.Max(0.1, scaleTransform.ScaleY - zoomFactor);
-                    }
+                    scaleTransform = new ScaleTransform(1.0, 1.0);
+                    textEditor.RenderTransform = scaleTransform;
                 }
+
+                // Adjust the scale based on the Delta value
+                if (e.Delta > 0)
+                {
+                    scaleTransform.ScaleX += zoomFactor;
+                    scaleTransform.ScaleY += zoomFactor;
+                }
+                else if (e.Delta < 0)
+                {
+                    scaleTransform.ScaleX = Math.Max(0.1, scaleTransform.ScaleX - zoomFactor);
+                    scaleTransform.ScaleY = Math.Max(0.1, scaleTransform.ScaleY - zoomFactor);
+                }
+
+                // Mark the event as handled to prevent further processing
+                e.Handled = true;
             }
         }
 
@@ -165,6 +457,71 @@ namespace ScrapLangEditor
             // Example: Do something when text changes.
             Console.WriteLine("Text changed!");
         }
+        // Set up the mouse hook when the window is loaded
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            _hookID = SetHook(_proc);
+        }
 
+        // Remove the mouse hook when the window is closed
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            UnhookWindowsHookEx(_hookID);
+
+            if (discordClient != null)
+            {
+                discordClient.Dispose();
+            }
+        }
+
+        // Set the mouse hook
+        private IntPtr SetHook(LowLevelMouseProc proc)
+        {
+            using (Process curProcess = Process.GetCurrentProcess())
+            using (ProcessModule curModule = curProcess.MainModule)
+            {
+                return SetWindowsHookEx(WH_MOUSE_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
+            }
+        }
+
+        // Hook callback function
+        private static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && wParam == (IntPtr)WM_MOUSEWHEEL)
+            {
+                MSLLHOOKSTRUCT hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
+                int delta = (short)((hookStruct.mouseData >> 16) & 0xffff);
+
+                // Check if Ctrl key is pressed
+                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                {
+                    Application.Current.Dispatcher.Invoke(() => {
+                        const double zoomFactor = 0.1;
+
+                        // Retrieve or create the ScaleTransform
+                        var scaleTransform = instance.textEditor.RenderTransform as ScaleTransform;
+                        if (scaleTransform == null)
+                        {
+                            scaleTransform = new ScaleTransform(1.0, 1.0);
+                            instance.textEditor.RenderTransform = scaleTransform;
+                        }
+
+                        // Adjust the scale based on the delta value
+                        if (delta > 0)
+                        {
+                            scaleTransform.ScaleX += zoomFactor;
+                            scaleTransform.ScaleY += zoomFactor;
+                        }
+                        else if (delta < 0)
+                        {
+                            scaleTransform.ScaleX = Math.Max(0.1, scaleTransform.ScaleX - zoomFactor);
+                            scaleTransform.ScaleY = Math.Max(0.1, scaleTransform.ScaleY - zoomFactor);
+                        }
+                    });
+                }
+            }
+
+            return CallNextHookEx(instance._hookID, nCode, wParam, lParam);
+        }
     }
 }

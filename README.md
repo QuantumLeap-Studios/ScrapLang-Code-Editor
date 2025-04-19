@@ -1,4 +1,4 @@
-# ScrapLang Code Editor
+![Banner](https://raw.githubusercontent.com/QuantumLeap-Studios/ScrapLang-Code-Editor/master/Copy%20of%20gdfgdf.png)
 
 ScrapLang Code Editor is a lightweight and customizable code editor designed for editing `.scrap` files with syntax highlighting and basic editing features.
 

@@ -44,6 +44,8 @@
 	   <Word>LoadAssetBundleAndUse</Word>
 	   <Word>SetBrightness</Word>
 	   <Word>GetModDirectory</Word>
+	   <Word>IsValueTrue</Word>
+	   <Word>SetValueTo</Word>
    </Keywords>
 
 	 <Keywords color="FunctionComment">

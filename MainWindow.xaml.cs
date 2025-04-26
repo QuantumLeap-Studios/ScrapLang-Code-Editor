@@ -27,14 +27,15 @@ using Application = System.Windows.Application;
 using DiscordRPC;
 using DiscordRPC.Logging;
 using System.Runtime.InteropServices.ComTypes;
+using System.Threading.Tasks;
 
 namespace ScrapLangEditor
 {
     public partial class MainWindow : Window
     {
         public static MainWindow instance;
-        private
-        const string RecentFilesPath = "recentFiles.txt";
+        private string RecentFilesPath = $"C:\\Users\\{Environment.UserName}\\AppData\\Roaming\\ScrapLangEditor\\recentFiles.cfg";
+        private string LastFilePath = $"C:\\Users\\{Environment.UserName}\\AppData\\Roaming\\ScrapLangEditor\\lastFileName.cfg";
         private DiscordRpcClient discordClient;
 
         private void LoadRecentFiles()
@@ -51,8 +52,18 @@ namespace ScrapLangEditor
 
         private void SaveRecentFiles()
         {
-            File.WriteAllLines(RecentFilesPath, recentFiles);
+            if (File.Exists(RecentFilesPath))
+            {
+                File.WriteAllLines(RecentFilesPath, recentFiles);
+            }
+            else
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(RecentFilesPath));
+                File.WriteAllLines(RecentFilesPath, recentFiles);
+            }
         }
+
+        public bool isDoneWithWhatever = false;
 
         private List<string> recentFiles = new List<string>();
         private List<string> fileExplorerItems = new List<string>();
@@ -122,6 +133,8 @@ namespace ScrapLangEditor
             }
             var resourceName = "ScrapLang_Code_Editor.Resources.ScrapLang.xshd";
 
+            this.KeyDown += MainWindow_KeyDown; // Attach the KeyDown event
+
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             {
                 if (stream == null)
@@ -167,6 +180,45 @@ namespace ScrapLangEditor
                 }
             });
 
+            if (!File.Exists(LastFilePath))
+            {
+                textEditor.Text = @"publicated intistab counter = 0stb
+invoid incrementCounter() == increment
+
+funcvoid increment() ==
+{
+    incrementCounter()
+}
+
+funcvoid Awake() ==  
+{
+    increment()
+    print(counter)
+}";
+            }
+            else
+            {
+                string lastFileName = File.ReadAllText(LastFilePath);
+                if (File.Exists(lastFileName))
+                {
+                    loaddefile(lastFileName);
+                }
+            }
+            textEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("ScrapLang");
+        }
+
+        private void AddToRecentFiles(string filePath)
+        {
+            if (!recentFiles.Contains(filePath))
+            {
+                recentFiles.Add(filePath);
+                RecentFilesList.Items.Add(filePath);
+                SaveRecentFiles();
+            }
+        }
+
+        public void NewFile_Click(object sender, RoutedEventArgs e)
+        {
             textEditor.Text = @"publicated intistab counter = 0stb
 invoid incrementCounter() == increment
 
@@ -180,19 +232,20 @@ funcvoid Awake() ==
     increment()
     print(counter)
 }";
-
-            textEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("ScrapLang");
+            SaveFile_Click(null, null);
+            _ = WaitForSaveThenLoad();
         }
 
-        private void AddToRecentFiles(string filePath)
+        public async Task WaitForSaveThenLoad()
         {
-            if (!recentFiles.Contains(filePath))
+            while (!isDoneWithWhatever)
             {
-                recentFiles.Add(filePath);
-                RecentFilesList.Items.Add(filePath);
-                SaveRecentFiles();
+                await Task.Delay(5); // Avoid busy-waiting by adding a small delay
             }
+            loaddefile(LastFilePath);
         }
+
+
         private void ToggleSidebar_Click(object sender, RoutedEventArgs e)
         {
             Sidebar.Visibility = Sidebar.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
@@ -227,7 +280,7 @@ funcvoid Awake() ==
         {
             if (FileExplorerList.SelectedItem != null)
             {
-                if(FileExplorerList.SelectedItem.ToString().ToLower().Contains("\\main.scrap"))
+                if (FileExplorerList.SelectedItem.ToString().ToLower().Contains("\\main.scrap"))
                 {
                     System.Windows.MessageBox.Show("Cannot remove main.scrap file.");
                     return;
@@ -254,6 +307,16 @@ funcvoid Awake() ==
         public void loaddefile(string FileName)
         {
             string extension = Path.GetExtension(FileName).ToLowerInvariant();
+
+            if (File.Exists(LastFilePath))
+            {
+                File.WriteAllText(LastFilePath, FileName);
+            }
+            else
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(LastFilePath));
+                File.WriteAllText(LastFilePath, FileName);
+            }
 
             if (extension == ".scrap")
             {
@@ -307,6 +370,7 @@ funcvoid Awake() ==
         }
         private void SaveFile_Click(object sender, RoutedEventArgs e)
         {
+            isDoneWithWhatever = false;
             SaveFileDialog saveFileDialog = new SaveFileDialog
             {
                 Filter = "ScrapLang files (*.scrap)|*.scrap|Zip archives (*.zip)|*.zip|All files (*.*)|*.*"
@@ -315,6 +379,18 @@ funcvoid Awake() ==
             if (saveFileDialog.ShowDialog() == true)
             {
                 string extension = Path.GetExtension(saveFileDialog.FileName).ToLowerInvariant();
+
+                AddToRecentFiles(saveFileDialog.FileName);
+
+                if (File.Exists(LastFilePath))
+                {
+                    File.WriteAllText(LastFilePath, saveFileDialog.FileName);
+                }
+                else
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(LastFilePath));
+                    File.WriteAllText(LastFilePath, saveFileDialog.FileName);
+                }
 
                 if (extension == ".scrap")
                 {
@@ -344,6 +420,7 @@ funcvoid Awake() ==
                     System.Windows.MessageBox.Show("Unsupported file type.");
                 }
             }
+            isDoneWithWhatever = true;
         }
 
         private void Undo_Click(object sender, RoutedEventArgs e)
@@ -522,6 +599,23 @@ funcvoid Awake() ==
             }
 
             return CallNextHookEx(instance._hookID, nCode, wParam, lParam);
+        }
+
+        private void MainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            {
+                if (e.Key == Key.S)
+                {
+                    AutoSaveFile();
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void AutoSaveFile()
+        {
+            SaveFile_Click(null, null);
         }
     }
 }

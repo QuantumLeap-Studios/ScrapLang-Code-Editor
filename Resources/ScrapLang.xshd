@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <SyntaxDefinition name="ScrapLang" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">  
  <Color name="Keyword" foreground="Blue" fontWeight="bold" />  
- <Color name="Type" foreground="Teal" />
+ <Color name="Type" foreground="Teal" />  
  <Color name="String" foreground="Maroon" />  
  <Color name="Comment" foreground="Green" />  
-	<Color name="FunctionComment" fontStyle="italic" />
+ <Color name="FunctionComment" fontStyle="italic" />  
+ <Color name="ImportType" foreground="Red" fontStyle="italic" />  
 
  <RuleSet>  
    <!-- Comments -->  
@@ -40,17 +41,18 @@
      <Word>GetRotation</Word>  
      <Word>GetScale</Word>  
      <Word>Rotate</Word>  
-     <Word>Scale</Word>
-	   <Word>LoadAssetBundleAndUse</Word>
-	   <Word>SetBrightness</Word>
-	   <Word>GetModDirectory</Word>
-	   <Word>IsValueTrue</Word>
-	   <Word>SetValueTo</Word>
-   </Keywords>
+     <Word>Scale</Word>  
+     <Word>LoadAssetBundleAndUse</Word>  
+     <Word>SetBrightness</Word>  
+     <Word>GetModDirectory</Word>  
+     <Word>IsValueTrue</Word>  
+     <Word>SetValueTo</Word>
+	   <Word>ReadFile</Word>
+   </Keywords>  
 
-	 <Keywords color="FunctionComment">
-		 <Word>==</Word>
-	 </Keywords>
+   <Keywords color="FunctionComment">  
+     <Word>==</Word>  
+   </Keywords>  
 
    <!-- Types -->  
    <Keywords color="Type">  
@@ -68,9 +70,21 @@
      <Word>quaternion</Word>  
      <Word>gameobject</Word>  
      <Word>transform</Word>  
-     <Word>monobehvaiour</Word>  
+     <Word>monobehvaiour</Word>
+	   <Word>return</Word>
+	   <Word>event</Word>
+	   <Word>await</Word>
+	   <Word>thread</Word>
+	   <Word>csharpclass</Word>
+	   <Word>try</Word>
+	   <Word>switch</Word>
    </Keywords>  
 
+   <Keywords color="ImportType">  
+     <Word>@import</Word>  
+     <Word>@using</Word>  
+     <Word>@reference</Word>  
+   </Keywords>  
 
    <!-- Numbers -->  
    <Rule color="Type">  
